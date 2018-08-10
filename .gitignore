@@ -48,3 +48,6 @@ env3/
 *.bak
 *.orig
 tags
+
+# Custom
+secrets.json

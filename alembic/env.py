@@ -1,4 +1,7 @@
 from __future__ import with_statement
+
+import json
+
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
@@ -6,6 +9,11 @@ from logging.config import fileConfig
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+with open('secrets.json', 'r') as f:
+    secrets = json.load(f)
+sqlalchemy_uri_escaped = secrets['SQLALCHEMY_DATABASE_URI'].replace('%', '%%')
+config.set_main_option('sqlalchemy.url', sqlalchemy_uri_escaped)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
