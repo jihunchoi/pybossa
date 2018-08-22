@@ -480,6 +480,7 @@ def update(short_name):
             new_project.allow_anonymous_contributors = fuzzyboolean(form.allow_anonymous_contributors.data)
             new_project.category_id = form.category_id.data
             new_project.zip_download = fuzzyboolean(form.zip_download.data)
+            new_project.visible = fuzzyboolean(form.visible.data)
 
         if fuzzyboolean(form.protect.data) and form.password.data:
             new_project.set_password(form.password.data)

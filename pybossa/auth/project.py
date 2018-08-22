@@ -33,14 +33,18 @@ class ProjectAuth(object):
         return getattr(self, action)(user, taskrun)
 
     def _create(self, user, project=None):
-        if project is not None and user.is_authenticated():
-            return project.published != True
-        return user.is_authenticated()
+        # if project is not None and user.is_authenticated():
+        #     return project.published != True
+        # return user.is_authenticated()
+
+        # Only admin users can create a project.
+        return user.admin
 
     def _read(self, user, project=None):
         if project is not None and project.published is False:
             return self._only_admin_or_owner(user, project)
-        return True
+        return ((project.visible and project.groups.any(user_id=user.id))
+                or self._only_admin_or_owner(user, project))
 
     def _update(self, user, project):
         return self._only_admin_or_owner(user, project)

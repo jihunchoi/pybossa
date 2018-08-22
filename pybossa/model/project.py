@@ -72,6 +72,10 @@ class Project(db.Model, DomainObject):
     #: Project info field formatted as JSON
     info = Column(MutableDict.as_mutable(JSONB), default=dict())
 
+    # Custom.
+    # Whether it is visible to users (who have privileges)
+    visible = Column(Boolean, nullable=False, default=True)
+
     tasks = relationship(Task, cascade='all, delete, delete-orphan', backref='project')
     task_runs = relationship(TaskRun, backref='project',
                              cascade='all, delete-orphan',
