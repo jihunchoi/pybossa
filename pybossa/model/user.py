@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with PYBOSSA.  If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import Integer, Boolean, Unicode, Text, String, BigInteger
+from sqlalchemy import Integer, Boolean, Unicode, Text, String, BigInteger, \
+    Table, ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.declarative import declarative_base
 from flask.ext.login import UserMixin
 from flask import current_app
 
@@ -29,6 +31,15 @@ from pybossa.model import DomainObject, make_timestamp, make_uuid
 from pybossa.model.project import Project
 from pybossa.model.task_run import TaskRun
 from pybossa.model.blogpost import Blogpost
+
+
+Base = declarative_base()
+
+user_accessible_project_association = Table(
+    'user_accessible_project_association', db.metadata,
+    Column('user_id', Integer, ForeignKey('user.id')),
+    Column('project_id', Integer, ForeignKey('project.id'))
+)
 
 
 class User(db.Model, DomainObject, UserMixin):
@@ -71,6 +82,10 @@ class User(db.Model, DomainObject, UserMixin):
     task_runs = relationship(TaskRun, backref='user')
     projects = relationship(Project, backref='owner')
     blogposts = relationship(Blogpost, backref='owner')
+
+    accessible_projects = relationship(
+        'Project', secondary=user_accessible_project_association,
+        backref='contributable_users')
 
 
     def get_id(self):

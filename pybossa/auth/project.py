@@ -41,12 +41,11 @@ class ProjectAuth(object):
         return user.admin
 
     def _read(self, user, project=None):
-        # TODO: Need permission test
         if project is not None:
             if project.published is False:
                 return self._only_admin_or_owner(user, project)
             else:
-                return ((project.visible and project.groups.any(user_id=user.id))
+                return ((project.visible and user in project.contributable_users)
                         or self._only_admin_or_owner(user, project))
         return True
 

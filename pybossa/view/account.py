@@ -689,8 +689,8 @@ def _handle_profile_update(user, update_form):
             return True
         if acc_conf_dis:
             user.email_addr = update_form.email_addr.data
-        user.privacy_mode = fuzzyboolean(update_form.privacy_mode.data)
-        user.restrict = fuzzyboolean(update_form.restrict.data)
+        # user.privacy_mode = fuzzyboolean(update_form.privacy_mode.data)
+        # user.restrict = fuzzyboolean(update_form.restrict.data)
         user.locale = update_form.locale.data
         user.subscribed = fuzzyboolean(update_form.subscribed.data)
         user_repo.update(user)
@@ -727,7 +727,7 @@ def _handle_external_services_update(user, update_form):
     del update_form.fullname
     del update_form.name
     if update_form.validate():
-        user.ckan_api = update_form.ckan_api.data or None
+        # user.ckan_api = update_form.ckan_api.data or None
         user_repo.update(user)
         cached_users.delete_user_summary(user.name)
         flash(gettext('Your profile has been updated!'), 'success')

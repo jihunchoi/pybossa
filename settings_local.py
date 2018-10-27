@@ -36,6 +36,7 @@ import os
 with open('secrets.json', 'r') as f:
     secrets = json.load(f)
 
+
 def get_secret(setting, secrets=secrets):
     return secrets[setting]
 

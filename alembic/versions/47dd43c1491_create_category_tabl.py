@@ -30,12 +30,6 @@ def upgrade():
         sa.Column('created', sa.Text, default=make_timestamp),
     )
 
-    # Add two categories
-    query = 'INSERT INTO category (name, short_name, description) VALUES (\'Thinking\', \'thinking\', \'Applications where you can help using your skills\')'
-    op.execute(query)
-    query = 'INSERT INTO category  (name, short_name, description) VALUES (\'Sensing\', \'sensing\', \'Applications where you can help gathering data\')'
-    op.execute(query)
-
 
 def downgrade():
     op.drop_table('category')

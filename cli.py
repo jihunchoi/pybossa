@@ -29,14 +29,10 @@ def db_create():
         # then, load the Alembic configuration and generate the
         # version table, "stamping" it with the most recent rev:
         setup_alembic_config()
-        # finally, add a minimum set of categories: Volunteer Thinking, Volunteer Sensing, Published and Draft
         categories = []
-        categories.append(Category(name="Thinking",
-                          short_name='thinking',
-                          description='Volunteer Thinking projects'))
-        categories.append(Category(name="Volunteer Sensing",
-                          short_name='sensing',
-                          description='Volunteer Sensing projects'))
+        categories.append(Category(name="Collection",
+                          short_name='collection',
+                          description='Projects for data collection'))
         db.session.add_all(categories)
         db.session.commit()
 

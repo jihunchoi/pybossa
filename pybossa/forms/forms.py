@@ -426,9 +426,9 @@ class UpdateProfileForm(Form):
     subscribed = BooleanField(lazy_gettext('Get email notifications'))
 
     locale = SelectField(lazy_gettext('Language'))
-    ckan_api = TextField(lazy_gettext('CKAN API Key'))
-    privacy_mode = BooleanField(lazy_gettext('Privacy Mode'))
-    restrict = BooleanField(lazy_gettext('Restrict processing'))
+    # ckan_api = TextField(lazy_gettext('CKAN API Key'))
+    # privacy_mode = BooleanField(lazy_gettext('Privacy Mode'))
+    # restrict = BooleanField(lazy_gettext('Restrict processing'))
 
     def set_locales(self, locales):
         """Fill the locale.choices."""

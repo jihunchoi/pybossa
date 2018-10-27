@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with PYBOSSA.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections import OrderedDict
 from flask.ext.babel import gettext
 from .csv import BulkTaskCSVImport, BulkTaskGDImport, BulkTaskLocalCSVImport
 from .dropbox import BulkTaskDropboxImport
@@ -32,12 +33,16 @@ class Importer(object):
 
     def __init__(self):
         """Init method."""
-        self._importers = dict(csv=BulkTaskCSVImport,
-                               gdocs=BulkTaskGDImport,
-                               epicollect=BulkTaskEpiCollectPlusImport,
-                               s3=BulkTaskS3Import,
-                               localCSV=BulkTaskLocalCSVImport,
-                               iiif=BulkTaskIIIFImporter)
+        # self._importers = dict(csv=BulkTaskCSVImport,
+        #                        gdocs=BulkTaskGDImport,
+        #                        epicollect=BulkTaskEpiCollectPlusImport,
+        #                        s3=BulkTaskS3Import,
+        #                        localCSV=BulkTaskLocalCSVImport,
+        #                        iiif=BulkTaskIIIFImporter)
+        self._importers = OrderedDict()
+        self._importers['localCSV'] = BulkTaskLocalCSVImport
+        self._importers['csv'] = BulkTaskCSVImport
+        self._importers['gdocs'] = BulkTaskGDImport
         self._importer_constructor_params = dict()
 
     def register_flickr_importer(self, flickr_params):
