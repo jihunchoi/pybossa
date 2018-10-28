@@ -573,6 +573,125 @@ def update(short_name):
     return handle_content_type(response)
 
 
+@blueprint.route('/<short_name>/contributable_users', methods=['GET', 'POST'])
+@login_required
+def contributable_users(short_name):
+    project = project_repo.get_by_shortname(short_name)
+    contributable_users = project.contributable_users
+    all_users = []
+    list_all = fuzzyboolean(request.args.get('list_all', False))
+    if request.method == 'GET' and list_all:
+        all_users = user_repo.get_all()
+        all_users = [u for u in all_users
+                     if (u.id not in project.owners_ids
+                         and not u.admin)]
+        form = ProjectAddContributableUsersForm(obj=project)
+        form.users_ids.data = [user.id for user in contributable_users]
+        form.users_ids.choices = [(user.id, user.name) for user in all_users]
+    else:
+        form = SearchForm(request.form)
+
+    ensure_authorized_to('read', project)
+    ensure_authorized_to('update', project)
+
+    response = dict(
+        template='/projects/contributable_users.html',
+        project=project.to_public_json(),
+        contributable_users=contributable_users,
+        all_users=all_users,
+        list_all=list_all,
+        form=form,
+        pro_features=pro_features()
+    )
+
+    if request.method == 'POST' and form.user.data:
+        query = form.user.data
+        matched_users = user_repo.search_by_name(query)
+        matched_users = [u for u in matched_users
+                         if (u not in project.contributable_users
+                             and u.id not in project.owners_ids
+                             and not u.admin)]
+
+        if not matched_users:
+            markup = Markup('<strong>{}</strong> {} <strong>{}</strong>')
+            flash(markup.format(gettext("Ooops!"),
+                                gettext("We didn't find a user matching your query:"),
+                                form.user.data))
+        else:
+            response['matched_users'] = matched_users
+
+    return handle_content_type(response)
+
+
+@blueprint.route('/<short_name>/add_contributable_user/<user_name>')
+@login_required
+def add_contributable_user(short_name, user_name=None):
+    project = project_repo.get_by_shortname(short_name)
+    user = user_repo.get_by_name(user_name)
+
+    ensure_authorized_to('read', project)
+    ensure_authorized_to('update', project)
+
+    if project and user:
+        if user in project.contributable_users:
+            flash(gettext('The user can already contribute to the project'))
+        else:
+            if user.id in project.owners_ids or user.admin:
+                flash(gettext('An admin or a co-owner cannot be '
+                              'a contributable user'))
+            else:
+                project.contributable_users.append(user)
+                project_repo.update(project)
+                flash(gettext('The user was added to the list of '
+                              'contributable users'),
+                      'success')
+        return redirect_content_type(
+            url_for(".contributable_users", short_name=short_name))
+    return abort(404)
+
+
+@blueprint.route('/<short_name>/add_contributable_users', methods=['POST'])
+@login_required
+def add_contributable_users(short_name, user_name=None):
+    project = project_repo.get_by_shortname(short_name)
+    users = [user_repo.get(user_id)
+             for user_id in request.body.getlist('users_ids')]
+
+    ensure_authorized_to('read', project)
+    ensure_authorized_to('update', project)
+
+    project.contributable_users = users
+    project_repo.update(project)
+    flash(gettext('Successfully added {} user(s) to the project'
+                  .format(len(users))),
+          'success')
+    return redirect_content_type(
+        url_for('.contributable_users', short_name=short_name, list_all=True))
+
+
+@blueprint.route('/<short_name>/del_contributable_user/<user_name>')
+@login_required
+def del_contributable_user(short_name, user_name=None):
+    project = project_repo.get_by_shortname(short_name)
+    user = user_repo.get_by_name(user_name)
+
+    ensure_authorized_to('read', project)
+    ensure_authorized_to('update', project)
+
+    if project and user:
+        if user not in project.contributable_users:
+            flash(gettext('The user is already not contributable'))
+        else:
+            project.contributable_users.remove(user)
+            project_repo.update(project)
+            flash(gettext('The user was deleted from the list of '
+                          'contributable users'),
+                  'success')
+        return redirect_content_type(
+            url_for('.contributable_users', short_name=short_name))
+    return abort(404)
+
+
 @blueprint.route('/<short_name>/')
 def details(short_name):
     project, owner, ps = project_by_shortname(short_name)

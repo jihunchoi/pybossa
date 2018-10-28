@@ -20,6 +20,7 @@
 from forms import (
     ProjectForm,
     ProjectUpdateForm,
+    ProjectAddContributableUsersForm,
     TaskPresenterForm,
     TaskRedundancyForm,
     TaskPriorityForm,

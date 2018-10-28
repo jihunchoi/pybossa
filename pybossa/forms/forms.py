@@ -22,7 +22,7 @@ from flask_wtf.file import FileField, FileRequired
 from wtforms import IntegerField, DecimalField, TextField, BooleanField, \
     SelectField, validators, TextAreaField, PasswordField, FieldList, SelectMultipleField
 from wtforms.fields.html5 import EmailField, URLField
-from wtforms.widgets import HiddenInput
+from wtforms.widgets import HiddenInput, CheckboxInput, ListWidget
 from flask.ext.babel import lazy_gettext, gettext
 
 from pybossa.core import project_repo, user_repo
@@ -83,6 +83,15 @@ class ProjectUpdateForm(ProjectForm):
     password = TextField(lazy_gettext('Password'))
     webhook = TextField(lazy_gettext('Webhook'),
                         [pb_validator.Webhook()])
+
+
+class ProjectAddContributableUsersForm(Form):
+    id = IntegerField(label=None, widget=HiddenInput())
+    users_ids = SelectMultipleField(
+        lazy_gettext('User(s)'),
+        coerce=int,
+        option_widget=CheckboxInput(),
+        widget=ListWidget(prefix_label=False))
 
 
 class TaskPresenterForm(Form):
