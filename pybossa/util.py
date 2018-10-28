@@ -172,6 +172,12 @@ def admin_required(f):  # pragma: no cover
     return decorated_function
 
 
+def check_taskrun_capacity_per_user(n_completed, n_allowed):
+    if n_allowed == 0:
+        return True
+    return n_completed < n_allowed
+
+
 # Fromhttp://stackoverflow.com/q/1551382
 def pretty_date(time=False):
     """Return a pretty date.

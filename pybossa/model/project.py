@@ -75,6 +75,8 @@ class Project(db.Model, DomainObject):
     # Custom.
     # Whether it is visible to users (who have privileges)
     visible = Column(Boolean, nullable=False, default=True)
+    # Maximum number of tasks per user
+    n_allowed_tasks = Column(Integer, nullable=False, default=0)
 
     tasks = relationship(Task, cascade='all, delete, delete-orphan', backref='project')
     task_runs = relationship(TaskRun, backref='project',

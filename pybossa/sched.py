@@ -19,10 +19,12 @@
 from sqlalchemy.sql import func, desc
 from sqlalchemy import and_
 from pybossa.model import DomainObject
+from pybossa.model.project import Project
 from pybossa.model.task import Task
 from pybossa.model.task_run import TaskRun
 from pybossa.model.counter import Counter
 from pybossa.core import db
+from pybossa.util import check_taskrun_capacity_per_user
 import random
 
 
@@ -32,6 +34,13 @@ session = db.slave_session
 def new_task(project_id, sched, user_id=None, user_ip=None,
              external_uid=None, offset=0, limit=1, orderby='priority_0', desc=True):
     """Get a new task by calling the appropriate scheduler function."""
+    if user_id is not None:
+        n_allowed_tasks = session.query(Project.n_allowed_tasks).filter(
+            Project.id == project_id).first()[0]
+        n_completed_tasks = session.query(TaskRun).filter_by(
+            project_id=project_id, user_id=user_id).count()
+        if not check_taskrun_capacity_per_user(n_completed_tasks, n_allowed_tasks):
+            return []
     sched_map = {
         'default': get_depth_first_task,
         'breadth_first': get_breadth_first_task,

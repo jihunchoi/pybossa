@@ -79,6 +79,7 @@ class ProjectUpdateForm(ProjectForm):
     zip_download = BooleanField(lazy_gettext('Allow ZIP data download'))
     category_id = SelectField(lazy_gettext('Category'), coerce=int)
     visible = BooleanField(lazy_gettext('Visible'))
+    n_allowed_tasks = IntegerField(lazy_gettext('Maximum Number of Tasks per User'))
     protect = BooleanField(lazy_gettext('Protect with a password?'))
     password = TextField(lazy_gettext('Password'))
     webhook = TextField(lazy_gettext('Webhook'),

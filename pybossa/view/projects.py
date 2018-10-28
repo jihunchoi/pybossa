@@ -481,6 +481,7 @@ def update(short_name):
             new_project.category_id = form.category_id.data
             new_project.zip_download = fuzzyboolean(form.zip_download.data)
             new_project.visible = fuzzyboolean(form.visible.data)
+            new_project.n_allowed_tasks = form.n_allowed_tasks.data
 
         if fuzzyboolean(form.protect.data) and form.password.data:
             new_project.set_password(form.password.data)

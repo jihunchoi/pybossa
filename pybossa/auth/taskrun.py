@@ -17,6 +17,7 @@
 # along with PYBOSSA.  If not, see <http://www.gnu.org/licenses/>.
 
 from flask import abort
+from pybossa.util import check_taskrun_capacity_per_user
 
 
 class TaskRunAuth(object):
@@ -39,6 +40,13 @@ class TaskRunAuth(object):
         project = self.project_repo.get(taskrun.project_id)
         if (user.is_anonymous() and
                 project.allow_anonymous_contributors is False):
+            return False
+        n_taskruns = self.task_repo.count_task_runs_with(
+            project_id=taskrun.project_id,
+            task_id=taskrun.task_id,
+            user_id=taskrun.user_id)
+        if not check_taskrun_capacity_per_user(
+                n_taskruns, project.n_allowed_tasks):
             return False
         authorized = self.task_repo.count_task_runs_with(
             project_id=taskrun.project_id,
