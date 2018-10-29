@@ -62,11 +62,9 @@ TITLE = 'SNUTurk'
 LOGO = 'default_logo.svg'
 COPYRIGHT = 'IDS Lab., Seoul National University'
 DESCRIPTION = 'Let me give you some microtasks.'
-# TODO: Fill descriptions
 TERMSOFUSE = 'http://okfn.org/terms-of-use/'
 DATAUSE = 'http://opendatacommons.org/licenses/by/'
-CONTACT_EMAIL = 'jhchoi@europa.snua.c.kr'
-CONTACT_TWITTER = 'ChoiJihun'
+CONTACT_EMAIL = get_secret('CONTACT_EMAIL')
 
 ## Default number of projects per page
 ## APPS_PER_PAGE = 20
@@ -107,13 +105,13 @@ CONTACT_TWITTER = 'ChoiJihun'
 # LOG_LEVEL = logging.DEBUG
 
 ## Mail setup
-# TODO: Maybe configure mail setup?
-MAIL_SERVER = 'localhost'
-MAIL_USERNAME = None
-MAIL_PASSWORD = None
-MAIL_PORT = 25
-MAIL_FAIL_SILENTLY = False
-MAIL_DEFAULT_SENDER = 'PyBossa Support <info@pybossa.com>'
+MAIL_SERVER = get_secret('MAIL_SERVER')
+MAIL_USERNAME = get_secret('MAIL_USERNAME')
+MAIL_PASSWORD = get_secret('MAIL_PASSWORD')
+MAIL_PORT = get_secret('MAIL_PORT')
+MAIL_FAIL_SILENTLY = get_secret('MAIL_FAIL_SILENTLY')
+MAIL_DEFAULT_SENDER = get_secret('MAIL_DEFAULT_SENDER')
+MAIL_USE_TLS = get_secret('MAIL_USE_TLS')
 
 ## Announcement messages
 ## Use any combination of the next type of messages: root, user, and app owners
