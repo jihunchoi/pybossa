@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with PyBossa.  If not, see <http://www.gnu.org/licenses/>.
 
-DEBUG = True
-ENABLE_DEBUG_TOOLBAR = True
+DEBUG = False
+ENABLE_DEBUG_TOOLBAR = False
 DEBUG_TB_INTERCEPT_REDIRECTS = False
 
 ## host for local development
