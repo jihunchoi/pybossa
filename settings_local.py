@@ -29,6 +29,7 @@ DEBUG_TB_INTERCEPT_REDIRECTS = False
 ## PORT used for local development, in production environment let nginx handle this
 # PORT = 5000
 
+
 import json
 import os
 
@@ -40,6 +41,8 @@ with open('secrets.json', 'r') as f:
 def get_secret(setting, secrets=secrets):
     return secrets[setting]
 
+# Ready for production
+SERVER_NAME = get_secret('SERVER_NAME')
 
 SECRET = get_secret('SECRET')
 SECRET_KEY = get_secret('SECRET_KEY')
