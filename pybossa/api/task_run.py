@@ -23,16 +23,20 @@ This package adds GET, POST, PUT and DELETE methods for:
 
 """
 import json
-from flask import request, Response
-from flask.ext.login import current_user
+import time
+from flask import request, Response, current_app
+from flask_login import current_user
 from pybossa.model.task_run import TaskRun
 from werkzeug.exceptions import Forbidden, BadRequest
 
 from api_base import APIBase
-from pybossa.util import get_user_id_or_ip
-from pybossa.core import task_repo, sentinel, anonymizer
+from pybossa.util import get_user_id_or_ip, get_avatar_url
+from pybossa.core import task_repo, sentinel, anonymizer, project_repo
+from pybossa.core import uploader
 from pybossa.contributions_guard import ContributionsGuard
 from pybossa.auth import jwt_authorize_project
+from pybossa.auth import ensure_authorized_to, is_authorized
+from pybossa.sched import can_post
 
 
 class TaskRunAPI(APIBase):
@@ -42,8 +46,13 @@ class TaskRunAPI(APIBase):
     __class__ = TaskRun
     reserved_keys = set(['id', 'created', 'finish_time'])
 
+    def check_can_post(self, project_id, task_id, user_ip_or_id):
+        if not can_post(project_id, task_id, user_ip_or_id):
+            raise Forbidden("You must request a task first!")
+
     def _update_object(self, taskrun):
         """Update task_run object with user id or ip."""
+        self.check_can_post(taskrun.project_id, taskrun.task_id, get_user_id_or_ip())
         task = task_repo.get_task(taskrun.task_id)
         guard = ContributionsGuard(sentinel.master)
 
@@ -87,3 +96,60 @@ class TaskRunAPI(APIBase):
     def _add_created_timestamp(self, taskrun, task, guard):
         taskrun.created = guard.retrieve_timestamp(task, get_user_id_or_ip())
         guard._remove_task_stamped(task, get_user_id_or_ip())
+
+    def _file_upload(self, data):
+        """Method that must be overriden by the class to allow file uploads for
+        only a few classes."""
+        cls_name = self.__class__.__name__.lower()
+        content_type = 'multipart/form-data'
+        if (content_type in request.headers.get('Content-Type') and
+                cls_name in self.allowed_classes_upload):
+            data = dict()
+            for key in request.form.keys():
+                if key in ['project_id', 'task_id']:
+                    data[key] = int(request.form[key])
+                elif key == 'info':
+                    data[key] = json.loads(request.form[key])
+                else:
+                    data[key] = request.form[key]
+            # inst = self._create_instance_from_request(data)
+            data = self.hateoas.remove_links(data)
+            inst = self.__class__(**data)
+            self._add_user_info(inst)
+            is_authorized(current_user, 'create', inst)
+            upload_method = current_app.config.get('UPLOAD_METHOD')
+            if request.files.get('file') is None:
+                raise AttributeError
+            _file = request.files['file']
+            if current_user.is_authenticated():
+                container = "user_%s" % current_user.id
+            else:
+                container = "anonymous"
+            if _file.filename == 'blob' or _file.filename is None:
+                _file.filename = "%s.png" % time.time()
+            uploader.upload_file(_file,
+                                 container=container)
+            avatar_absolute = current_app.config.get('AVATAR_ABSOLUTE')
+            file_url = get_avatar_url(upload_method,
+                                      _file.filename,
+                                      container,
+                                      avatar_absolute)
+            data['media_url'] = file_url
+            if data.get('info') is None:
+                data['info'] = dict()
+            data['info']['container'] = container
+            data['info']['file_name'] = _file.filename
+            return data
+        else:
+            return None
+
+    def _file_delete(self, request, obj):
+        """Delete file object."""
+        cls_name = self.__class__.__name__.lower()
+        if cls_name in self.allowed_classes_upload:
+            if type(obj.info) == dict:
+                keys = obj.info.keys()
+                if 'file_name' in keys and 'container' in keys:
+                    ensure_authorized_to('delete', obj)
+                    uploader.delete_file(obj.info['file_name'],
+                                         obj.info['container'])
