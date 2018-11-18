@@ -24,7 +24,7 @@ from flask import render_template
 from pybossa.cache import projects as cached_projects
 from pybossa.cache import users as cached_users
 from pybossa.cache import categories as cached_cat
-from pybossa.util import rank, handle_content_type
+from pybossa.util import rank, handle_content_type, redirect_content_type
 from jinja2.exceptions import TemplateNotFound
 
 
@@ -37,12 +37,7 @@ def home():
     page = 1
     per_page = current_app.config.get('APPS_PER_PAGE', 5)
 
-    # Add featured
-    tmp_projects = cached_projects.get_featured('featured', page, per_page)
-    if len(tmp_projects) > 0:
-        data = dict(featured=rank(tmp_projects))
-    else:
-        data = dict(featured=[])
+    data = dict(featured=[])
     # Add historical contributions
     historical_projects = []
     if current_user.is_authenticated():
@@ -51,6 +46,7 @@ def home():
         data['historical_contributions'] = historical_projects
     response = dict(template='/home/index.html', **data)
     return handle_content_type(response)
+    # return redirect_content_type(url_for('.about'))
 
 
 @blueprint.route("about")

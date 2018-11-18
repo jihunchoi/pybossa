@@ -48,7 +48,7 @@ from pybossa.model.blogpost import Blogpost
 from pybossa.util import (Pagination, admin_required, get_user_id_or_ip, rank,
                           handle_content_type, redirect_content_type,
                           get_avatar_url, fuzzyboolean)
-from pybossa.auth import ensure_authorized_to
+from pybossa.auth import ensure_authorized_to, is_authorized
 from pybossa.cache import projects as cached_projects
 from pybossa.cache import users as cached_users
 from pybossa.cache import categories as cached_cat
@@ -164,7 +164,9 @@ def index(page):
     """List projects in the system"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
-    if cached_projects.n_count('featured') > 0:
+    featured_projects = [p for p in project_repo.filter_by(featured=True)
+                         if is_authorized(current_user, 'read', p)]
+    if len(featured_projects) > 0:
         return project_index(page, cached_projects.get_all_featured,
                              'featured', True, False, order_by, desc)
     else:
@@ -178,13 +180,15 @@ def project_index(page, lookup, category, fallback, use_count, order_by=None,
     """Show projects of a category"""
     per_page = current_app.config['APPS_PER_PAGE']
     ranked_projects = lookup(category)
+    ranked_projects = [p for p in ranked_projects
+                       if is_authorized(current_user, 'read', project_repo.get(p['id']))]
 
     if not pre_ranked:
         ranked_projects = rank(ranked_projects, order_by, desc)
 
     offset = (page - 1) * per_page
     projects = ranked_projects[offset:offset+per_page]
-    count = cached_projects.n_count(category)
+    count = len(ranked_projects)
 
     if fallback and not projects:  # pragma: no cover
         return redirect(url_for('.index'))
